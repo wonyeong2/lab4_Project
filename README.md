@@ -3,6 +3,7 @@
 
 
 # Project Usage
+'''
 //터미널 1
 cd /lab4_Project/QTCPServer
 $ qmake -o Makefile QTCPServer.pro
@@ -14,3 +15,4 @@ cd /lab4_Project/QTCPClient
 $ qmake -o Makefile QTCPClient.pro
 $ make
 $ ./QTCPClient
+'''
