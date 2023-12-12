@@ -44,7 +44,7 @@ void MainWindow::appendToSocketList(QTcpSocket* socket)
     connection_set.insert(socket);
     connect(socket, &QTcpSocket::readyRead, this, &MainWindow::readSocket);
     connect(socket, &QTcpSocket::disconnected, this, &MainWindow::discardSocket);
-    connect(socket, &QAbstractSocket::errorOccurred, this, &MainWindow::displayError);
+    connect(socket, QOverload<QAbstractSocket::SocketError>::of(&QAbstractSocket::error), this, &MainWindow::displayError);
     ui->comboBox_receiver->addItem(QString::number(socket->socketDescriptor()));
     displayMessage(QString("NOTICE ) %1번 사용자 입장").arg(socket->socketDescriptor()));
 }
@@ -56,7 +56,7 @@ void MainWindow::readSocket()
     QByteArray buffer;
 
     QDataStream socketStream(socket);
-    socketStream.setVersion(QDataStream::Qt_5_15);
+    socketStream.setVersion(QDataStream::Qt_5_6);
 
     socketStream.startTransaction();
     socketStream >> buffer;
@@ -197,7 +197,7 @@ void MainWindow::sendMessage(QTcpSocket* socket) // 메시지 전송
             QString str = ui->lineEdit_message->text();
             ui->textBrowser_receivedMessages->append(str);
             QDataStream socketStream(socket);
-            socketStream.setVersion(QDataStream::Qt_5_15);
+            socketStream.setVersion(QDataStream::Qt_5_6);
 
             QByteArray header;
             header.prepend(QString("fileType:message,fileName:null,fileSize:%1;").arg(str.size()).toUtf8());
@@ -206,7 +206,7 @@ void MainWindow::sendMessage(QTcpSocket* socket) // 메시지 전송
             QByteArray byteArray = str.toUtf8();
             byteArray.prepend(header);
 
-            socketStream.setVersion(QDataStream::Qt_5_15);
+            socketStream.setVersion(QDataStream::Qt_5_6);
             socketStream << byteArray;
         }
         else
@@ -229,7 +229,7 @@ void MainWindow::sendAttachment(QTcpSocket* socket, QString filePath) // 첨부�
                 QString fileName(fileInfo.fileName());
 
                 QDataStream socketStream(socket);
-                socketStream.setVersion(QDataStream::Qt_5_15);
+                socketStream.setVersion(QDataStream::Qt_5_6);
 
                 QByteArray header;
                 header.prepend(QString("fileType:attachment,fileName:%1,fileSize:%2;").arg(fileName).arg(m_file.size()).toUtf8());

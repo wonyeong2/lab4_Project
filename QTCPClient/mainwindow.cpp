@@ -9,10 +9,10 @@ MainWindow::MainWindow(QWidget* parent) :  //생성자
     ui->setupUi(this);
     socket = new QTcpSocket(this);
 
-    connect(this, &MainWindow::newMessage, this, &MainWindow::displayMessage);
-    connect(socket, &QTcpSocket::disconnected, this, &MainWindow::discardSocket);
-    connect(socket, &QAbstractSocket::errorOccurred, this, &MainWindow::displayError);
-    connect(socket, &QTcpSocket::readyRead, this, &MainWindow::readSocket);
+    connect(this, SIGNAL(newMessage(QString)), this, SLOT(displayMessage(QString)));
+    connect(socket, SIGNAL(disconnected()), this, SLOT(discardSocket()));
+    connect(socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(displayError(QAbstractSocket::SocketError)));
+    connect(socket, SIGNAL(readyRead()), this, SLOT(readSocket));
 
     socket->connectToHost(QHostAddress::LocalHost, 8080);  //로컬 호스트의 8080 포트에 소켓 연결
 
@@ -60,7 +60,7 @@ void MainWindow::readSocket()  //소켓으로부터 데이터를 읽고 처리
 {
     QByteArray buffer;
     QDataStream socketStream(socket);  //소켓에서 데이터를 읽음
-    socketStream.setVersion(QDataStream::Qt_5_15);
+    socketStream.setVersion(QDataStream::Qt_5_6);
     socketStream.startTransaction();  //데이터를 읽어들이기 전 트랜잭션 시작
     socketStream >> buffer;  //데이터를 buffer에 저장
 
@@ -117,8 +117,9 @@ void MainWindow::on_pushButton_sendMessage_clicked()  //메시지 보내기 버�
         {
             QString str = ui->lineEdit_message->text();  //lineEdit_message에 입력된 문자열을 가져옴
             ui->textBrowser_receivedMessages->append(str);  //텍스트 브라우저에 해당 문자열 추가
+
             QDataStream socketStream(socket);  //소켓과 연결
-            socketStream.setVersion(QDataStream::Qt_5_15);  //버전 설정
+            socketStream.setVersion(QDataStream::Qt_5_6);  //버전 설정
 
             QByteArray header;
             header.prepend(QString("fileType:message,fileName:null,fileSize:%1;").arg(str.size()).toUtf8());
@@ -153,14 +154,14 @@ void MainWindow::on_pushButton_sendAttachment_clicked()  //첨부파일 보내�
                 QFileInfo fileInfo(m_file.fileName());  //파일 정보 추출
                 QString fileName(fileInfo.fileName());  //파일 이름 추출
                 QDataStream socketStream(socket);  //소켓과 연결
-                socketStream.setVersion(QDataStream::Qt_5_15);  
+                socketStream.setVersion(QDataStream::Qt_5_6);  
 
                 QByteArray header;
                 header.prepend(QString("fileType:attachment,fileName:%1,fileSize:%2;").arg(fileName).arg(m_file.size()).toUtf8());
                 header.resize(128);
                 QByteArray byteArray = m_file.readAll();
                 byteArray.prepend(header);
-                socketStream.setVersion(QDataStream::Qt_5_15);
+                socketStream.setVersion(QDataStream::Qt_5_6);
                 socketStream << byteArray;
             }
             else
